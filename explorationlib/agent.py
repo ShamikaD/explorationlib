@@ -1702,7 +1702,10 @@ class GradientDiffusionGrid(Agent2d):
 
 class QlearnGrid(Agent2d):
     """Q learning search, on a NSEW grid"""
-    def __init__(self, min_length=1, scale=2, step_size=1, env_size = (10, 10), lr=0.1, gamma=0.5):
+    def __init__(self, min_length=1, scale=2, step_size=1, env_size = (10, 10), lr=0.1, gamma=0.5, targetx, targety):
+        #get target x and y coords, update q learning table
+        #figure out computation time 
+        #compare how fast it gets there
         super().__init__()
         self.possible_actions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
         self.qtable = defaultdict(list)#np.zeros(((env_size[0]*2)+1, (env_size[1]*2)+1))

@@ -1368,7 +1368,7 @@ def add_noise(scent, sigma=0.1, prng=None):
 
 def _init_prng(prng):
     if prng is None:
-        return np.random.RandomState(prng)
+        return int(np.random.RandomState(prng))
     else:
         return prng
 
