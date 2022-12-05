@@ -1701,7 +1701,144 @@ class GradientDiffusionGrid(Agent2d):
 
 
 class QlearnGrid(Agent2d):
-    pass
+    """Q learning search, on a NSEW grid"""
+    def __init__(self, min_length=1, scale=2, step_size=1, env_size = (10, 10), lr=0.1, gamma=0.5):
+        super().__init__()
+        self.possible_actions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        self.qtable = defaultdict(list)#np.zeros(((env_size[0]*2)+1, (env_size[1]*2)+1))
+
+        self.step_size = int(step_size)
+        if self.step_size < 1:
+            raise ValueError("step musst be >= 1")
+
+        self.min_length = int(min_length)
+        if self.min_length < 1:
+            raise ValueError("min_length must be >= 1")
+
+        self.scale = float(scale)
+        self.reset()
+
+    def _angle(self, state):
+        i = int(self.np_random.randint(0, len(self.possible_actions)))
+        return self.possible_actions[i]
+
+    def _l(self, state):
+        """Sample length"""
+        i = 0
+        while True and i < 10000:
+            i += 1
+            l = self.np_random.exponential(self.scale)
+            l = int(l)
+            if l > self.min_length:
+                return l
+
+    def forward(self, state):
+        """Step forward."""
+
+        # Keep going?
+        if self.l > self.step:
+            # Step
+            self.step += self.step_size
+            # Clip?
+            if self.step > self.l:
+                self.step = int(self.step - self.l)
+            self.num_step += 1
+        # Turn?
+        else:
+            self.num_turn += 1
+            self.num_step = 0
+            self.l = self._l(state)
+            self.angle = self._angle(state)
+            self.step = self.step_size
+
+        # Step
+        action = self.angle
+        self.total_distance += self.step
+
+        # Log
+        self.history["agent_num_turn"].append(deepcopy(self.num_turn))
+        self.history["agent_angle"].append(deepcopy(self.angle))
+        self.history["agent_l"].append(deepcopy(self.l))
+        self.history["agent_total_l"].append(deepcopy(self.total_distance))
+        self.history["agent_step"].append(deepcopy(self.step_size))
+        self.history["agent_num_step"].append(deepcopy(self.num_step))
+        self.history["agent_action"].append(deepcopy(action))
+
+        return action
+
+    def reset(self):
+        """Reset all counters, turns, and steps"""
+
+        # Safe intial values
+        self.l = self._l(np.zeros(2))
+        self.angle = self._angle(np.zeros(2))
+
+        # Clean
+        self.num_turn = 0
+        self.num_step = 0
+        self.step = 0
+        self.total_distance = 0.0
+        self.history = defaultdict(list)
+
+
+        """Actor-Critic agent, with Q learning."""
+    def __init__(self, actor, critic, lr=0.1, gamma=0.5):
+        self.seed()
+        self.history = defaultdict(list)
+        self.total_distance = 0
+
+        self.actor = actor
+        self.critic = critic
+        self.lr = float(lr)
+        self.gamma = float(gamma)
+
+    def __call__(self, state):
+        pos, _ = state
+        pos = tuple(pos)
+
+        return self.forward(pos)
+
+    def update(self, state, action, R, next_state, info):
+        # Parse
+        pos, _ = state
+        pos = tuple(pos)
+
+        next_pos, _ = next_state
+        next_pos = tuple(next_pos)
+
+        self.critic = Q_grid_update(
+            pos,
+            action,
+            R,
+            next_pos,
+            self.critic,
+            self.lr,
+            self.gamma,
+        )
+
+    def forward(self, state):
+        action = self.actor(self.critic(state))
+
+        # Log
+        self.total_distance += 1
+        self.history["agent_reward_value"].append(
+            deepcopy(self.critic.get_value(state, action)))
+        self.history["agent_total_l"].append(deepcopy(self.total_distance))
+        self.history["agent_step"].append(deepcopy(1))
+        self.history["agent_num_step"].append(deepcopy(self.total_distance))
+        self.history["agent_action"].append(deepcopy(action))
+
+        return action
+
+    def reset(self):
+        # Don't reset RL algs between experiments
+        self.history = defaultdict(list)
+        self.total_distance = 0
+
+    def seed(self, seed=None):
+        """Init RandomState"""
+        self.np_random = np.random.RandomState(seed)
+        return [seed]
 
 
 class Uniform2d(Agent2d):
