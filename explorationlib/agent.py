@@ -1702,8 +1702,14 @@ class GradientDiffusionGrid(Agent2d):
 
 class QlearnGrid(Agent2d):
     """Q learning search, on a NSEW grid"""
-    def __init__(self, min_length=1, scale=2, step_size=1, env_size = (10, 10), lr=0.1, gamma=0.5, targetx, targety):
+    def __init__(self, min_length=1, scale=2, step_size=1, env_size = (10, 10), lr=0.1, gamma=0.5, targets):
         #get target x and y coords, update q learning table
+        #create code from scratch
+        #create environemnts trgets from here (one with less targets and one with more)
+        #make random agent that will randomly choose direction to go
+        #q learning agent that will train on evironment and choose which path to take
+        #count and plot num steps to reach target for 100 trails each
+        #
         #figure out computation time 
         #compare how fast it gets there
         super().__init__()
@@ -1724,16 +1730,6 @@ class QlearnGrid(Agent2d):
     def _angle(self, state):
         i = int(self.np_random.randint(0, len(self.possible_actions)))
         return self.possible_actions[i]
-
-    def _l(self, state):
-        """Sample length"""
-        i = 0
-        while True and i < 10000:
-            i += 1
-            l = self.np_random.exponential(self.scale)
-            l = int(l)
-            if l > self.min_length:
-                return l
 
     def forward(self, state):
         """Step forward."""
