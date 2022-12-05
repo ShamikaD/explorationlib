@@ -1387,7 +1387,7 @@ def uniform_targets(N, shape, prng=None):
     targets = list(zip(*targets))
     targets = [np.asarray(t) for t in targets]
 
-    return targets
+    return [1,2]#targets
 
 
 def exponential_targets(N, shape, scale=1, clip=True, prng=None):
