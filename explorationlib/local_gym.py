@@ -1381,8 +1381,8 @@ def uniform_targets(N, shape, prng=None):
     for s in shape:
         locs = prng.uniform(-s, s, size=N)
         targets.append(deepcopy(locs))
-    [x.astype(int) for x in targets]
-    
+    targets = [x.astype(int) for x in targets]
+
     # Reorg into a list of location arrays
     targets = list(zip(*targets))
     targets = [np.asarray(t) for t in targets]
