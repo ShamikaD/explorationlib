@@ -1368,19 +1368,21 @@ def add_noise(scent, sigma=0.1, prng=None):
 
 def _init_prng(prng):
     if prng is None:
-        return int(np.random.RandomState(prng))
+        return np.random.RandomState(prng)
     else:
         return prng
 
 
 def uniform_targets(N, shape, prng=None):
+    print('hi')
     prng = _init_prng(prng)
 
     targets = []
     for s in shape:
         locs = prng.uniform(-s, s, size=N)
         targets.append(deepcopy(locs))
-
+    [x.astype(int) for x in targets]
+    
     # Reorg into a list of location arrays
     targets = list(zip(*targets))
     targets = [np.asarray(t) for t in targets]
